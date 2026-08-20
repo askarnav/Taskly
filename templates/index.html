@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Taskly</title>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+
+    <!-- Links -->
+    <link href="../static/logo.ico" rel="icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div class="container col-xxl-8 px-4 py-5" style="animation: fadeIn 1.2s ease-out forwards;">
+        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+
+<!--         <img src="../static/logo.jpg">-->
+            <div class="col-10 col-sm-8 col-lg-6" style="animation: slideInRight 1s ease-out;">
+                <img src="../static/banner.jpg" class="d-block mx-lg-auto img-fluid rounded-3 shadow-sm transition-all" alt="Bootstrap Themes" width="700" height="500" loading="lazy" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='scale(1.02)'; this.className='d-block mx-lg-auto img-fluid rounded-3 shadow-lg';" onmouseout="this.style.transform='scale(1)'; this.className='d-block mx-lg-auto img-fluid rounded-3 shadow-sm';">
+            </div>
+
+            <div class="col-lg-6" style="animation: slideInLeft 1s ease-out;">
+                <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">Taskly</h1>
+                <p class="lead">Taskly is a simple, manageable to-do app designed to keep tasks organized
+                    without adding complexity. With a clean layout, quick task creation, and easy progress
+                    tracking, it helps daily priorities stay clear and actionable. From personal errands to
+                    work projects, Taskly makes planning feel lighter, faster, and easier to maintain.</p>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
+
+                    <a href='{{ url_for("register") }}' class="btn btn-primary btn-lg px-4 me-md-2 shadow-sm" style="transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Try Now</a>
+                    <a href='{{ url_for("login") }}' class="btn btn-outline-light btn-lg px-4" style="transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">Log in</a>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-md-6 p-lg-5 mx-auto my-5">
+        <h1 class="display-3 fw-bold">Built for Students</h1>
+        <h3 class="fw-normal text-muted mb-3">"Manging tasks is the first step towards managing your life."</h3>
+    </div>
+
+    <div class="product-device shadow-sm d-none d-md-block"></div>
+    <div class="product-device product-device-2 shadow-sm d-none d-md-block"></div>
+
+    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+        <div class="col-md-4 d-flex align-items-center">
+            <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1" aria-label="Bootstrap">
+                <svg class="bi" width="30" height="24" aria-hidden="true"><use xlink:href="#bootstrap"></use></svg> </a>
+            <span class="mb-3 mb-md-0 text-body-secondary">Copyright © 2026 AskArnav</span>
+        </div>
+        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+            <li class="ms-3"><a class="text-body-secondary" href="#" aria-label="Instagram">
+                <svg class="bi" width="24" height="24" aria-hidden="true"><use xlink:href="#instagram"></use></svg>
+            </a>
+            </li>
+            <li class="ms-3"><a class="text-body-secondary" href="#" aria-label="Facebook">
+                <svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg>
+            </a>
+            </li>
+        </ul>
+    </footer>
+
+</body>
+</html>
