@@ -45,16 +45,31 @@ class LoginForm(FlaskForm):
     password = PasswordField('Enter your password', [DataRequired()])
     submit = SubmitField('Login')
 
+
+
+class TaskForm(FlaskForm):
+    task = StringField('Add a task', [DataRequired()])
+    submit = SubmitField('Add task', [DataRequired()])
+
+
 def init_db():
     conn = psycopg2.connect(DSN)
     cur = conn.cursor()
-    cur.execute("DROP TABLE IF EXISTS users CASCADE;")
     cur.execute("""
-        CREATE TABLE users (
+        CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY, 
             username VARCHAR(150) NOT NULL, 
             email VARCHAR(150) NOT NULL UNIQUE, 
             code TEXT NOT NULL
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id SERIAL PRIMARY KEY,
+            title TEXT NOT NULL,
+            status VARCHAR(50) DEFAULT 'Pending',
+            user_id INTEGER NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     """)
     conn.commit()
