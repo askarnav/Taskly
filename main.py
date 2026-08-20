@@ -83,7 +83,10 @@ def main():
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html', user=current_user.username)
+    form = TaskForm()
+    if form.validate_on_submit():
+        task = form.task.data
+    return render_template('home.html', user=current_user.username, form=form)
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
