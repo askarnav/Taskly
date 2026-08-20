@@ -1,5 +1,5 @@
 import psycopg2
-from flask import Flask, render_template, url_for, session, flash, redirect
+from flask import Flask, render_template, url_for, session, flash, redirect, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email
@@ -15,7 +15,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-DSN = "postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0-a.oregon-postgres.render.com/posts_fuui"
+DSN = "postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0.oregon-postgres.render.com/posts_fuui"
+
 class User(UserMixin):
     def __init__(self, id, username, email):
         self.id = id
@@ -45,12 +46,9 @@ class LoginForm(FlaskForm):
     password = PasswordField('Enter your password', [DataRequired()])
     submit = SubmitField('Login')
 
-
-
 class TaskForm(FlaskForm):
     task = StringField('Add a task', [DataRequired()])
-    submit = SubmitField('Add task', [DataRequired()])
-
+    submit = SubmitField('Add task')
 
 def init_db():
     conn = psycopg2.connect(DSN)
@@ -80,13 +78,53 @@ def init_db():
 def main():
     return render_template("index.html")
 
-@app.route('/home')
+@app.route('/home', methods=['POST', 'GET'])
 @login_required
 def home():
     form = TaskForm()
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
     if form.validate_on_submit():
         task = form.task.data
-    return render_template('home.html', user=current_user.username, form=form)
+        cur.execute(
+            "INSERT INTO tasks (title, user_id) VALUES (%s, %s)",
+            (task, current_user.id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return redirect(url_for('home'))
+    cur.execute("SELECT id, title, status FROM tasks WHERE user_id = %s ORDER BY id DESC", (current_user.id,))
+    user_tasks = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('home.html', user=current_user.username, form=form, tasks=user_tasks)
+
+@app.route('/task/toggle/<int:task_id>', methods=['POST'])
+@login_required
+def toggle_task(task_id):
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
+    cur.execute("SELECT status FROM tasks WHERE id = %s AND user_id = %s", (task_id, current_user.id))
+    task = cur.fetchone()
+    if task:
+        new_status = 'Completed' if task[0] == 'Pending' else 'Pending'
+        cur.execute("UPDATE tasks SET status = %s WHERE id = %s", (new_status, task_id))
+        conn.commit()
+    cur.close()
+    conn.close()
+    return redirect(url_for('home'))
+
+@app.route('/task/delete/<int:task_id>', methods=['POST'])
+@login_required
+def delete_task(task_id):
+    conn = psycopg2.connect(DSN)
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tasks WHERE id = %s AND user_id = %s", (task_id, current_user.id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return redirect(url_for('home'))
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
@@ -95,12 +133,9 @@ def register():
         name = form.name.data
         email = form.email.data
         password = form.password.data
-
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
-
         try:
             cur.execute(
                 "INSERT INTO users (username, email, code) VALUES (%s, %s, %s) RETURNING id",
@@ -110,18 +145,15 @@ def register():
             conn.commit()
             cur.close()
             conn.close()
-
             userobj = User(id=user_id, username=name, email=email)
             login_user(userobj)
             return redirect(url_for('home'))
-
         except psycopg2.errors.UniqueViolation:
             conn.rollback()
             cur.close()
             conn.close()
             flash('User already exists with this email!')
             return redirect(url_for('register'))
-
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -130,23 +162,19 @@ def login():
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
         cur.execute('SELECT id, username, email, code FROM users WHERE email = %s', (email,))
         user_data = cur.fetchone()
         cur.close()
         conn.close()
-
         if user_data and check_password_hash(user_data[3], password):
             userobj = User(id=user_data[0], username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
             return redirect(url_for('home'))
-
         flash('Invalid email or password!')
         return redirect(url_for('login'))
-
     return render_template('login.html', form=form)
 
 @app.route('/logout')
