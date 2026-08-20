@@ -15,7 +15,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-DSN = "postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0.oregon-postgres.render.com/posts_fuui"
+DSN = "postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0-a.oregon-postgres.render.com/posts_fuui"
 
 class User(UserMixin):
     def __init__(self, id, username, email):
