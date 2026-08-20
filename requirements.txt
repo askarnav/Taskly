@@ -12,3 +12,5 @@ python-dotenv==1.0.1
 bleach==6.4.0
 flask-login
 gunicorn
+psycopg2-binary
+psycopg2
