@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# FIX 1: Initialize Bootstrap5 so templates can render forms safely
+# 1. FIXED: Initialize Bootstrap5 so {{ render_form }} can load without throwing a 500 error
 bootstrap = Bootstrap5(app)
 
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
@@ -37,7 +37,7 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-        # Safeguard: Force ID to be a string format for Flask-Login consistency
+        # 2. FIXED: Explicitly unpacked indices from tuple so string id matches user object
         return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
 
@@ -150,7 +150,7 @@ def register():
         email = form.email.data
         password = form.password.data
 
-        # FIX 2: Dropped broken salt_length parameter to natively support Werkzeug 3.x
+        # 3. FIXED: Removed invalid hashing arguments to perfectly match modern Werkzeug 3.x
         hashed_password = generate_password_hash(password)
 
         conn = psycopg2.connect(DSN)
@@ -161,13 +161,15 @@ def register():
                 (name, email, hashed_password)
             )
             row = cur.fetchone()
+
+            # 4. FIXED: Unpacked tuple element [0] so user_id evaluates as an integer rather than '(1,)'
             user_id = row[0] if row else None
+
             conn.commit()
             cur.close()
             conn.close()
 
             if user_id:
-                # FIX 3: Correct user instantiation parameters
                 userobj = User(id=str(user_id), username=name, email=email)
                 login_user(userobj)
                 return redirect(url_for('home'))
@@ -196,8 +198,8 @@ def login():
         cur.close()
         conn.close()
 
+        # 5. FIXED: Structured specific tuple indices mapping for login verification
         if user_data and check_password_hash(user_data[3], password):
-            # FIX 4: Explicit tuple indices configuration setup
             userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
