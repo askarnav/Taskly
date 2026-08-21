@@ -126,6 +126,7 @@ def delete_task(task_id):
     conn.close()
     return redirect(url_for('home'))
 
+
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     form = RegisterForm()
@@ -133,7 +134,10 @@ def register():
         name = form.name.data
         email = form.email.data
         password = form.password.data
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+
+        hashed_password = generate_password_hash(password, salt_length=8)
+
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
         try:
@@ -141,19 +145,27 @@ def register():
                 "INSERT INTO users (username, email, code) VALUES (%s, %s, %s) RETURNING id",
                 (name, email, hashed_password)
             )
-            user_id = cur.fetchone()[0]
+
+            row = cur.fetchone()
+            user_id = row[0] if row else None
+
             conn.commit()
             cur.close()
             conn.close()
-            userobj = User(id=user_id, username=name, email=email)
-            login_user(userobj)
-            return redirect(url_for('home'))
+
+            if user_id:
+
+                userobj = User(id=str(user_id), username=name, email=email)
+                login_user(userobj)
+                return redirect(url_for('home'))
+
         except psycopg2.errors.UniqueViolation:
             conn.rollback()
             cur.close()
             conn.close()
             flash('User already exists with this email!')
             return redirect(url_for('register'))
+
     return render_template('register.html', form=form)
 
 
