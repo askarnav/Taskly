@@ -1,4 +1,5 @@
 import psycopg2
+# noinspection PyUnusedImports
 from flask import Flask, render_template, url_for, session, flash, redirect, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
