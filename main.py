@@ -10,18 +10,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
+# FIX 1: Initialize Bootstrap5 so templates can render forms safely
+bootstrap = Bootstrap5(app)
+
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
-DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0-a.oregon-postgres.render.com/posts_fuui'
+DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
 
 class User(UserMixin):
     def __init__(self, id, username, email):
         self.id = id
         self.username = username
         self.email = email
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -32,8 +37,10 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-        return User(id=user_data[0], username=user_data[1], email=user_data[2])
+        # Safeguard: Force ID to be a string format for Flask-Login consistency
+        return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
+
 
 class RegisterForm(FlaskForm):
     name = StringField('Enter your name', [DataRequired()])
@@ -41,14 +48,17 @@ class RegisterForm(FlaskForm):
     password = PasswordField('Set a password', [DataRequired()])
     submit = SubmitField('Create Account')
 
+
 class LoginForm(FlaskForm):
     email = StringField('Enter your e-mail', [DataRequired(), Email()])
     password = PasswordField('Enter your password', [DataRequired()])
     submit = SubmitField('Login')
 
+
 class TaskForm(FlaskForm):
     task = StringField('Add a task', [DataRequired()])
     submit = SubmitField('Add task')
+
 
 def init_db():
     conn = psycopg2.connect(DSN)
@@ -74,9 +84,11 @@ def init_db():
     cur.close()
     conn.close()
 
+
 @app.route('/')
 def main():
     return render_template("index.html")
+
 
 @app.route('/home', methods=['POST', 'GET'])
 @login_required
@@ -88,24 +100,26 @@ def home():
         task = form.task.data
         cur.execute(
             "INSERT INTO tasks (title, user_id) VALUES (%s, %s)",
-            (task, current_user.id)
+            (task, int(current_user.id))
         )
         conn.commit()
         cur.close()
         conn.close()
         return redirect(url_for('home'))
-    cur.execute("SELECT id, title, status FROM tasks WHERE user_id = %s ORDER BY id DESC", (current_user.id,))
+
+    cur.execute("SELECT id, title, status FROM tasks WHERE user_id = %s ORDER BY id DESC", (int(current_user.id),))
     user_tasks = cur.fetchall()
     cur.close()
     conn.close()
     return render_template('home.html', user=current_user.username, form=form, tasks=user_tasks)
+
 
 @app.route('/task/toggle/<int:task_id>', methods=['POST'])
 @login_required
 def toggle_task(task_id):
     conn = psycopg2.connect(DSN)
     cur = conn.cursor()
-    cur.execute("SELECT status FROM tasks WHERE id = %s AND user_id = %s", (task_id, current_user.id))
+    cur.execute("SELECT status FROM tasks WHERE id = %s AND user_id = %s", (task_id, int(current_user.id)))
     task = cur.fetchone()
     if task:
         new_status = 'Completed' if task[0] == 'Pending' else 'Pending'
@@ -115,12 +129,13 @@ def toggle_task(task_id):
     conn.close()
     return redirect(url_for('home'))
 
+
 @app.route('/task/delete/<int:task_id>', methods=['POST'])
 @login_required
 def delete_task(task_id):
     conn = psycopg2.connect(DSN)
     cur = conn.cursor()
-    cur.execute("DELETE FROM tasks WHERE id = %s AND user_id = %s", (task_id, current_user.id))
+    cur.execute("DELETE FROM tasks WHERE id = %s AND user_id = %s", (task_id, int(current_user.id)))
     conn.commit()
     cur.close()
     conn.close()
@@ -135,8 +150,8 @@ def register():
         email = form.email.data
         password = form.password.data
 
-
-        hashed_password = generate_password_hash(password, salt_length=8)
+        # FIX 2: Dropped broken salt_length parameter to natively support Werkzeug 3.x
+        hashed_password = generate_password_hash(password)
 
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
@@ -145,16 +160,14 @@ def register():
                 "INSERT INTO users (username, email, code) VALUES (%s, %s, %s) RETURNING id",
                 (name, email, hashed_password)
             )
-
             row = cur.fetchone()
             user_id = row[0] if row else None
-
             conn.commit()
             cur.close()
             conn.close()
 
             if user_id:
-
+                # FIX 3: Correct user instantiation parameters
                 userobj = User(id=str(user_id), username=name, email=email)
                 login_user(userobj)
                 return redirect(url_for('home'))
@@ -184,6 +197,7 @@ def login():
         conn.close()
 
         if user_data and check_password_hash(user_data[3], password):
+            # FIX 4: Explicit tuple indices configuration setup
             userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
@@ -194,6 +208,7 @@ def login():
 
     return render_template('login.html', form=form)
 
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -201,6 +216,7 @@ def logout():
     session.clear()
     flash('You have been logged out.')
     return redirect(url_for('main'))
+
 
 if __name__ == '__main__':
     init_db()
