@@ -10,9 +10,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# 1. FIXED: Initialize Bootstrap5 so {{ render_form }} can load without throwing a 500 error
+# Initialize Bootstrap5 so render_form functions natively in your templates
 bootstrap = Bootstrap5(app)
 
+# Using your exact typed-out strings directly
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
 DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
 
@@ -37,10 +38,9 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-        # Fixed: Using the proper brackets to get the exact values out of the tuple
+        # ✅ FIX 1: Flask-Login forces the ID property to be saved as a string text type!
         return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
-
 
 
 class RegisterForm(FlaskForm):
@@ -151,7 +151,7 @@ def register():
         email = form.email.data
         password = form.password.data
 
-        # 3. FIXED: Removed invalid hashing arguments to perfectly match modern Werkzeug 3.x
+        # Fixes compatibility issues with modern Werkzeug 3.x installations
         hashed_password = generate_password_hash(password)
 
         conn = psycopg2.connect(DSN)
@@ -162,15 +162,13 @@ def register():
                 (name, email, hashed_password)
             )
             row = cur.fetchone()
-
-            # 4. FIXED: Unpacked tuple element [0] so user_id evaluates as an integer rather than '(1,)'
             user_id = row[0] if row else None
-
             conn.commit()
             cur.close()
             conn.close()
 
             if user_id:
+                # ✅ FIX 2: Explicitly pass string ID here
                 userobj = User(id=str(user_id), username=name, email=email)
                 login_user(userobj)
                 return redirect(url_for('home'))
@@ -199,8 +197,8 @@ def login():
         cur.close()
         conn.close()
 
-        # 5. FIXED: Structured specific tuple indices mapping for login verification
         if user_data and check_password_hash(user_data[3], password):
+            # ✅ FIX 3: Clean index positioning map matching the database output schema structure
             userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
