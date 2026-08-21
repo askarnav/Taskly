@@ -156,25 +156,30 @@ def register():
             return redirect(url_for('register'))
     return render_template('register.html', form=form)
 
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
+
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
         cur.execute('SELECT id, username, email, code FROM users WHERE email = %s', (email,))
         user_data = cur.fetchone()
         cur.close()
         conn.close()
+
         if user_data and check_password_hash(user_data[3], password):
-            userobj = User(id=user_data[0], username=user_data[1], email=user_data[2])
+            userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
             return redirect(url_for('home'))
+
         flash('Invalid email or password!')
         return redirect(url_for('login'))
+
     return render_template('login.html', form=form)
 
 @app.route('/logout')
