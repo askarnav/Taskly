@@ -37,9 +37,10 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-        # 2. FIXED: Explicitly unpacked indices from tuple so string id matches user object
+        # Fixed: Using the proper brackets to get the exact values out of the tuple
         return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
+
 
 
 class RegisterForm(FlaskForm):
