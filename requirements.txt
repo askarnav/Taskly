@@ -14,3 +14,5 @@ flask-login
 gunicorn
 psycopg2-binary
 psycopg2
+email_validator==2.1.1
+Bootstrap-Flask==2.4.0
