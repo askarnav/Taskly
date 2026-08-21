@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default-placeholder-key-for-dev')
+app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
 DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0-a.oregon-postgres.render.com/posts_fuui'
 
 login_manager = LoginManager()
