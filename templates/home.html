@@ -1,57 +1,54 @@
 <!DOCTYPE html>
 {% from 'bootstrap5/form.html' import render_form %}
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <title>Taskly</title>
-
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-40px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(40px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-    </style>
-
-    <!-- Links -->
-    <link href="../static/logo.ico" rel="icon">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-            crossorigin="anonymous"></script>
+    <link href="https://jsdelivr.net" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Taskly</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-link active" aria-current="page" href="#">Home</a>
-        <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
-      </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Taskly</a>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+                <a class="nav-link active" href="#">Home</a>
+                <a class="nav-link" href="{{ url_for('logout') }}">Log Out</a>
+            </div>
+        </div>
     </div>
-  </div>
 </nav>
-<div class="my-5">
-    <div class="p-5 text-center bg-body-tertiary">
-        <div class="container py-5"><h1 class="text-body-emphasis">Hey there, {{ user }}</h1>
-            <p class="col-lg-8 mx-auto lead">
-                Start managing your tasks.
-            </p></div>
-    </div>
+<div class="container py-5 text-center">
+    <h1>Hey there, {{ user }}</h1>
+    <p class="lead">Start managing your tasks.</p>
 </div>
-
-{{ render_form(form) }}
+<div class="container col-md-6 border rounded p-4 mb-5">
+    {{ render_form(form) }}
+</div>
+<div class="container col-md-6 mb-5">
+    <h3>Your Todo List</h3>
+    <ul class="list-group">
+        {% for task in tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span {% if task[2]== 'Completed' %}style="text-decoration: line-through; opacity: 0.6;"{% endif %}>
+            {{ task[1] }}
+            </span>
+            <div>
+                <form action="{{ url_for('toggle_task', task_id=task[0]) }}" method="POST" class="d-inline">
+                    <button type="submit"
+                            class="btn btn-sm {% if task[2] == 'Completed' %}btn-secondary{% else %}btn-success{% endif %}">
+                        {% if task[2] == 'Completed' %}Mark Pending{% else %}Mark Complete{% endif %}
+                    </button>
+                </form>
+                <form action="{{ url_for('delete_task', task_id=task[0]) }}" method="POST" class="d-inline ms-1">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-center text-muted">No tasks added yet.</li>
+        {% endfor %}
+    </ul>
+</div>
 </body>
 </html>
