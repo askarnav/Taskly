@@ -13,7 +13,8 @@ bootstrap = Bootstrap5(app)
 
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
 app.config['WTF_CSRF_ENABLED'] = False
-DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
+DSN = "postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@dpg-d9li63u7bikc7393dhp0-a.oregon-postgres.render.com/posts_fuui"
+
 
 
 login_manager = LoginManager()
