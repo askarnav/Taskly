@@ -15,6 +15,7 @@ app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759ja
 app.config['WTF_CSRF_ENABLED'] = False
 DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -30,14 +31,18 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     conn = psycopg2.connect(DSN)
-    cur = conn.cursor()
+
+    from psycopg2.extras import RealDictCursor
+    cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("SELECT id, username, email FROM users WHERE id = %s", (int(user_id),))
     user_data = cur.fetchone()
     cur.close()
     conn.close()
     if user_data:
-        return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
+
+        return User(id=str(user_data.get('id')), username=user_data.get('username'), email=user_data.get('email'))
     return None
+
 
 
 class RegisterForm(FlaskForm):
@@ -180,15 +185,19 @@ def login():
         email = form.email.data
         password = form.password.data
         conn = psycopg2.connect(DSN)
-        cur = conn.cursor()
+        from psycopg2.extras import RealDictCursor
+        cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute('SELECT id, username, email, code FROM users WHERE email = %s', (email,))
         user_data = cur.fetchone()
         cur.close()
         conn.close()
-        if user_data and check_password_hash(user_data[3], password):
-            userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
+
+
+        if user_data and check_password_hash(user_data.get('code'), password):
+            userobj = User(id=str(user_data.get('id')), username=user_data.get('username'),
+                           email=user_data.get('email'))
             login_user(userobj)
-            session['user_name'] = user_data[1]
+            session['user_name'] = user_data.get('username')
             return redirect(url_for('home'))
         flash('Invalid email or password!')
         return redirect(url_for('login'))
