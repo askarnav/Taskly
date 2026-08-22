@@ -9,15 +9,11 @@ from flask_login import logout_user, login_user, current_user, LoginManager, log
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-
-
 bootstrap = Bootstrap5(app)
 
-
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
+app.config['WTF_CSRF_ENABLED'] = False
 DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
-app.config['SECRET_KEY'] = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -40,7 +36,6 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-
         return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
 
@@ -152,10 +147,7 @@ def register():
         name = form.name.data
         email = form.email.data
         password = form.password.data
-
-        # Fixes compatibility issues with modern Werkzeug 3.x installations
         hashed_password = generate_password_hash(password)
-
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
         try:
@@ -168,20 +160,16 @@ def register():
             conn.commit()
             cur.close()
             conn.close()
-
             if user_id:
-
                 userobj = User(id=str(user_id), username=name, email=email)
                 login_user(userobj)
                 return redirect(url_for('home'))
-
         except psycopg2.errors.UniqueViolation:
             conn.rollback()
             cur.close()
             conn.close()
             flash('User already exists with this email!')
             return redirect(url_for('register'))
-
     return render_template('register.html', form=form)
 
 
@@ -191,24 +179,19 @@ def login():
     if form.validate_on_submit():
         email = form.email.data
         password = form.password.data
-
         conn = psycopg2.connect(DSN)
         cur = conn.cursor()
         cur.execute('SELECT id, username, email, code FROM users WHERE email = %s', (email,))
         user_data = cur.fetchone()
         cur.close()
         conn.close()
-
         if user_data and check_password_hash(user_data[3], password):
-
             userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
             return redirect(url_for('home'))
-
         flash('Invalid email or password!')
         return redirect(url_for('login'))
-
     return render_template('login.html', form=form)
 
 
