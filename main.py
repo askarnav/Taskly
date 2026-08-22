@@ -10,12 +10,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# Initialize Bootstrap5 so render_form functions natively in your templates
+
 bootstrap = Bootstrap5(app)
 
-# Using your exact typed-out strings directly
+
 app.secret_key = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
 DSN = 'postgresql://posts_fuui_user:D9VjVBMC5qvlIzx2t7rAv1KC4aFfjp0V@://render.com'
+app.config['SECRET_KEY'] = 'MyVerySecretKeyForTaskly2026Andialsousethiskeyforblogman-759jandistudeinclass7cintheyar2026pleasedonotsharethissecretkeywithanyoneintheworlthankyou'
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -38,7 +40,7 @@ def load_user(user_id):
     cur.close()
     conn.close()
     if user_data:
-        # ✅ FIX 1: Flask-Login forces the ID property to be saved as a string text type!
+
         return User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
     return None
 
@@ -168,7 +170,7 @@ def register():
             conn.close()
 
             if user_id:
-                # ✅ FIX 2: Explicitly pass string ID here
+
                 userobj = User(id=str(user_id), username=name, email=email)
                 login_user(userobj)
                 return redirect(url_for('home'))
@@ -198,7 +200,7 @@ def login():
         conn.close()
 
         if user_data and check_password_hash(user_data[3], password):
-            # ✅ FIX 3: Clean index positioning map matching the database output schema structure
+
             userobj = User(id=str(user_data[0]), username=user_data[1], email=user_data[2])
             login_user(userobj)
             session['user_name'] = user_data[1]
