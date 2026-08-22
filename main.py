@@ -31,17 +31,17 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     conn = psycopg2.connect(DSN)
-
-    from psycopg2.extras import RealDictCursor
-    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur = conn.cursor()
     cur.execute("SELECT id, username, email FROM users WHERE id = %s", (int(user_id),))
     user_data = cur.fetchone()
     cur.close()
     conn.close()
     if user_data:
-
-        return User(id=str(user_data.get('id')), username=user_data.get('username'), email=user_data.get('email'))
+        from operator import itemgetter
+        get_id, get_user, get_email = itemgetter(0, 1, 2)(user_data)
+        return User(id=str(get_id), username=get_user, email=get_email)
     return None
+
 
 
 
@@ -161,7 +161,12 @@ def register():
                 (name, email, hashed_password)
             )
             row = cur.fetchone()
-            user_id = row[0] if row else None
+            if row:
+                from operator import itemgetter
+                user_id = itemgetter(0)(row)
+            else:
+                user_id = None
+
             conn.commit()
             cur.close()
             conn.close()
@@ -185,23 +190,23 @@ def login():
         email = form.email.data
         password = form.password.data
         conn = psycopg2.connect(DSN)
-        from psycopg2.extras import RealDictCursor
-        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur = conn.cursor()
         cur.execute('SELECT id, username, email, code FROM users WHERE email = %s', (email,))
         user_data = cur.fetchone()
         cur.close()
         conn.close()
-
-
-        if user_data and check_password_hash(user_data.get('code'), password):
-            userobj = User(id=str(user_data.get('id')), username=user_data.get('username'),
-                           email=user_data.get('email'))
-            login_user(userobj)
-            session['user_name'] = user_data.get('username')
-            return redirect(url_for('home'))
+        if user_data:
+            from operator import itemgetter
+            get_id, get_user, get_email, get_code = itemgetter(0, 1, 2, 3)(user_data)
+            if check_password_hash(get_code, password):
+                userobj = User(id=str(get_id), username=get_user, email=get_email)
+                login_user(userobj)
+                session['user_name'] = get_user
+                return redirect(url_for('home'))
         flash('Invalid email or password!')
         return redirect(url_for('login'))
     return render_template('login.html', form=form)
+
 
 
 @app.route('/logout')
